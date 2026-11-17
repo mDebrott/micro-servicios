@@ -15,6 +15,8 @@ public interface RegistroVueloRepository extends JpaRepository<RegistroVuelo, Lo
 
     boolean existsByAeronaveIdAndEstado(Long aeronaveId, EstadoVuelo estado);
 
+    boolean existsByPilotoIdAndEstado(Long pilotoId, EstadoVuelo estado);
+
     @Query("""
            SELECT r FROM RegistroVuelo r
            JOIN FETCH r.aeronave
@@ -32,7 +34,7 @@ public interface RegistroVueloRepository extends JpaRepository<RegistroVuelo, Lo
     Optional<RegistroVuelo> findByIdConDetalle(@Param("id") Long id);
 
     @Query("""
-           SELECT new cl.capebe.aeronaves.dto.EstadisticasVueloDTO(
+           SELECT new com.clubaereo.aeronaves_service.dto.EstadisticasVueloDTO(
                COUNT(r),
                COUNT(DISTINCT r.piloto.id),
                COUNT(DISTINCT r.aeronave.id),
@@ -41,7 +43,7 @@ public interface RegistroVueloRepository extends JpaRepository<RegistroVuelo, Lo
            )
            FROM RegistroVuelo r
            WHERE r.jornadaId = :jornadaId
-             AND r.estado = cl.capebe.aeronaves.model.EstadoVuelo.CERRADO
+             AND r.estado = com.clubaereo.aeronaves_service.entities.EstadoVuelo.CERRADO
            """)
     EstadisticasVueloDTO obtenerEstadisticas(@Param("jornadaId") Long jornadaId);
 }

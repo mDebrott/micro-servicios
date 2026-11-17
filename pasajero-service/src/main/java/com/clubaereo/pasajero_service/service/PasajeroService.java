@@ -1,9 +1,12 @@
 package com.clubaereo.pasajero_service.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.clubaereo.pasajero_service.dto.ConsentimientoRequest;
 import com.clubaereo.pasajero_service.dto.PasajeroRequest;
@@ -17,20 +20,18 @@ import com.clubaereo.pasajero_service.exception.NotFoundException;
 import com.clubaereo.pasajero_service.repository.PasajeroRepository;
 import com.clubaereo.pasajero_service.util.RutValidator;
 
-import jakarta.transaction.Transactional;
+@Service
+public class PasajeroService {
 
-@Service 
-public class PasajeroService 
-{
+    private static final ZoneId ZONA = ZoneId.of("America/Santiago");
 
     private final PasajeroRepository repo;
 
-    public PasajeroService(PasajeroRepository repo)
-    {
+    public PasajeroService(PasajeroRepository repo) {
         this.repo = repo;
     }
 
-   @Transactional
+    @Transactional
     public PasajeroResponse inscribir(PasajeroRequest req) {
         String rut = RutValidator.normalizar(req.rut());
         if (!RutValidator.esValido(rut))
@@ -45,19 +46,19 @@ public class PasajeroService
         return PasajeroResponse.from(repo.save(p));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<PasajeroResponse> listarPorJornada(Long jornadaId) {
         return repo.findByJornadaId(jornadaId).stream()
             .map(PasajeroResponse::from)
             .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PasajeroResponse obtener(Long id) {
         return PasajeroResponse.from(buscar(id));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PasajeroResponse buscarPorRut(String rut, Long jornadaId) {
         String rutNormalizado = RutValidator.normalizar(rut);
         if (!RutValidator.esValido(rutNormalizado))
@@ -83,14 +84,24 @@ public class PasajeroService
             throw new ConflictException("El consentimiento ya fue firmado");
         if (p.getPesoKg() == null)
             throw new ConflictException("Debe registrar el peso antes de firmar");
+        validarBase64(req.firmaBase64());
 
         p.setFirmaBase64(req.firmaBase64());
-        p.setFechaFirma(LocalDateTime.now());
+        p.setFechaFirma(LocalDateTime.now(ZONA));
         p.setConsentimiento(EstadoConsentimiento.FIRMADO);
         return PasajeroResponse.from(repo.save(p));
     }
 
-    // Método privado reutilizable: evita repetir el "buscar o lanzar 404"
+    // Acepta tanto Base64 puro como "data:image/png;base64,...."
+    private void validarBase64(String firma) {
+        String datos = firma.contains(",") ? firma.substring(firma.indexOf(',') + 1) : firma;
+        try {
+            Base64.getMimeDecoder().decode(datos);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("La firma no es un Base64 válido");
+        }
+    }
+
     private Pasajero buscar(Long id) {
         return repo.findById(id)
             .orElseThrow(() -> new NotFoundException("Pasajero no existe"));

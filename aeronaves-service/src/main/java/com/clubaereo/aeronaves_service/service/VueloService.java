@@ -2,8 +2,10 @@ package com.clubaereo.aeronaves_service.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.clubaereo.aeronaves_service.dto.AbrirVueloRequest;
 import com.clubaereo.aeronaves_service.dto.CerrarVueloRequest;
@@ -19,18 +21,17 @@ import com.clubaereo.aeronaves_service.repository.AeronaveRepository;
 import com.clubaereo.aeronaves_service.repository.PilotoRepository;
 import com.clubaereo.aeronaves_service.repository.RegistroVueloRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-@Service 
-@RequiredArgsConstructor 
+@Service
+@RequiredArgsConstructor
 public class VueloService {
 
     private final AeronaveRepository aeronaveRepository;
     private final PilotoRepository pilotoRepository;
     private final RegistroVueloRepository vueloRepository;
 
-    @Transactional 
+    @Transactional
     public VueloResponse abrirVuelo(AbrirVueloRequest req) {
         Aeronave aeronave = aeronaveRepository.findById(req.aeronaveId())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -51,6 +52,10 @@ public class VueloService {
         if (vueloRepository.existsByAeronaveIdAndEstado(aeronave.getId(), EstadoVuelo.ABIERTO)) {
             throw new ReglaNegocioException(
                     "La aeronave " + aeronave.getMatricula() + " ya tiene un vuelo abierto");
+        }
+        if (vueloRepository.existsByPilotoIdAndEstado(piloto.getId(), EstadoVuelo.ABIERTO)) {
+            throw new ReglaNegocioException(
+                    "El piloto " + piloto.getNombre() + " ya tiene un vuelo abierto");
         }
 
         RegistroVuelo registro = RegistroVuelo.builder()
@@ -95,14 +100,21 @@ public class VueloService {
         return VueloResponse.from(vueloRepository.save(registro));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
+    public List<VueloResponse> listarPorJornada(Long jornadaId) {
+        return vueloRepository.findByJornadaIdConDetalle(jornadaId).stream()
+                .map(VueloResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public EstadisticasVueloDTO obtenerEstadisticas(Long jornadaId) {
         EstadisticasVueloDTO e = vueloRepository.obtenerEstadisticas(jornadaId);
         return new EstadisticasVueloDTO(
                 e.totalVuelos(),
                 e.pilotosDistintos(),
                 e.aeronavesDistintas(),
-                e.totalTripulantes() != null ? e.totalTripulantes() : 0L,
+                e.totalTripulantes() != null ? e.totalTripulantes() : Long.valueOf(0L),
                 e.horasTotales() != null ? e.horasTotales() : BigDecimal.ZERO);
     }
 }

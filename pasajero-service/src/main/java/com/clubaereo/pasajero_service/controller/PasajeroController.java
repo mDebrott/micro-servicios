@@ -29,9 +29,10 @@ public class PasajeroController {
     @GetMapping("/{id}")
     public PasajeroResponse obtener(@PathVariable Long id) { return service.obtener(id); }
 
-    @GetMapping("/rut/{rut}")
-    public PasajeroResponse buscarPorRut(@PathVariable String rut, @RequestParam Long jornadaId) {
-        return service.buscarPorRut(rut, jornadaId);
+    // POST (y no GET) para que el RUT viaje en el cuerpo y no en la URL
+    @PostMapping("/busqueda")
+    public PasajeroResponse buscarPorRut(@Valid @RequestBody BusquedaRutRequest req) {
+        return service.buscarPorRut(req.rut(), req.jornadaId());
     }
 
     @PutMapping("/{id}/peso")

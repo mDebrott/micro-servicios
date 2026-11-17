@@ -1,6 +1,7 @@
 package com.clubaereo.aeronaves_service.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,11 @@ public class VueloController {
     public VueloResponse cerrar(@PathVariable Long id,
                                 @Valid @RequestBody CerrarVueloRequest request) {
         return vueloService.cerrarVuelo(id, request);
+    }
+
+    @GetMapping
+    public List<VueloResponse> listarPorJornada(@RequestParam Long jornadaId) {
+        return vueloService.listarPorJornada(jornadaId);
     }
 
     @GetMapping ("/estadisticas")

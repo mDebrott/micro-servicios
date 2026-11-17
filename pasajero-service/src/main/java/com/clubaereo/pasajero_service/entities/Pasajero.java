@@ -1,5 +1,6 @@
 package com.clubaereo.pasajero_service.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -10,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +22,9 @@ import lombok.Setter;
 @NoArgsConstructor 
 @Getter 
 @Setter 
-@Table (name = "pasajero")
+@Table(name = "pasajero",
+       uniqueConstraints = @UniqueConstraint(name = "uq_pasajero_rut_jornada",
+                                             columnNames = {"rut", "jornada_id"}))
 public class Pasajero 
 {
     @Id 
@@ -36,8 +40,8 @@ public class Pasajero
     @Column(name = "jornada_id", nullable = false)
     private Long jornadaId;
 
-    @Column(name = "peso_kg")
-    private Double pesoKg;
+    @Column(name = "peso_kg", precision = 5, scale = 1)
+    private BigDecimal pesoKg;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

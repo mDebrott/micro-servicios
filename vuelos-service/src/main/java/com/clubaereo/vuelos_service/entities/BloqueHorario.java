@@ -13,13 +13,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity 
-@Data 
 @Table(name = "bloque_horario")
 @AllArgsConstructor 
 @NoArgsConstructor 

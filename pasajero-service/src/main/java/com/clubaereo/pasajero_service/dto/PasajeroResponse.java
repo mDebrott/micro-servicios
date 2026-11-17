@@ -1,6 +1,7 @@
 package com.clubaereo.pasajero_service.dto;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.clubaereo.pasajero_service.entities.EstadoConsentimiento;
@@ -11,7 +12,7 @@ public record PasajeroResponse(
     String rut,
     String nombreCompleto,
     Long jornadaId,
-    Double pesoKg,
+    BigDecimal pesoKg,
     EstadoConsentimiento consentimiento,
     LocalDateTime fechaFirma
 ) {

@@ -14,16 +14,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Data 
-@Table(name = "jornadas")
+@Table(name = "jornadas",
+       uniqueConstraints = @UniqueConstraint(name = "uq_jornada_fecha_base",
+                                             columnNames = {"fecha", "base"}))
 @AllArgsConstructor 
 @NoArgsConstructor 
 @Getter 

@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +27,7 @@ import lombok.Setter;
 @Setter 
 @NoArgsConstructor 
 @AllArgsConstructor 
+@Builder
 public class RegistroVuelo {
 
     @Id 
@@ -56,6 +58,7 @@ public class RegistroVuelo {
     @Column(name = "n_tripulantes")
     private Integer nTripulantes;          
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private EstadoVuelo estado = EstadoVuelo.ABIERTO;

@@ -41,4 +41,9 @@ public class AsignacionController {
     public AsignacionResponse confirmar(@PathVariable Long id) {
         return service.confirmar(id);
     }
+
+    @PutMapping("/{id}/cancelar")
+    public AsignacionResponse cancelar(@PathVariable Long id) {
+        return service.cancelar(id);
+    }
 }
