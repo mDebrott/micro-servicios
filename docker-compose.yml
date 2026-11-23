@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: clubaereo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-clubaereo}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-1234}
+    ports:
+      # Puerto 5433 en tu PC para no chocar con un Postgres local en el 5432
+      - "5433:5432"
+    volumes:
+      - clubaereo-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-clubaereo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - clubaereo-net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: clubaereo-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@clubaereo.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin1234}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - clubaereo-net
+
+  aeronaves-service:
+    build: ./aeronaves-service
+    container_name: clubaereo-aeronaves
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-clubaereo}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-1234}
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - clubaereo-net
+  
+  pasajero-service:
+    build: ./pasajero-service
+    container_name: clubaereo-pasajero
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-clubaereo}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-1234}
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - clubaereo-net
+  vuelos-service:
+    build: ./vuelos-service
+    container_name: clubaereo-vuelos
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-clubaereo}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-1234}
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - clubaereo-net
+
+  # Siguientes microservicios: copia el bloque de aeronaves-service
+  # y cambia nombre, carpeta y puerto (8082, 8083, ...).
+
+volumes:
+  clubaereo-data:
+  pgadmin-data:
+
+networks:
+  clubaereo-net:
+    driver: bridge
