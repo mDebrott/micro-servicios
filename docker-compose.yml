@@ -54,7 +54,7 @@ services:
         condition: service_healthy
     networks:
       - clubaereo-net
-  
+
   pasajero-service:
     build: ./pasajero-service
     container_name: clubaereo-pasajero
@@ -72,6 +72,7 @@ services:
         condition: service_healthy
     networks:
       - clubaereo-net
+
   vuelos-service:
     build: ./vuelos-service
     container_name: clubaereo-vuelos
@@ -82,16 +83,21 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-1234}
       SPRING_JPA_OPEN_IN_VIEW: "false"
+      # Dentro de Docker "localhost" es el propio contenedor: hay que usar el nombre del servicio.
+      PASAJERO_URL: http://pasajero-service:8082
+      AERONAVES_URL: http://aeronaves-service:8081
     ports:
       - "8083:8083"
     depends_on:
       postgres:
         condition: service_healthy
+      aeronaves-service:
+        condition: service_started
+      pasajero-service:
+        condition: service_started
     networks:
       - clubaereo-net
 
-  # Siguientes microservicios: copia el bloque de aeronaves-service
-  # y cambia nombre, carpeta y puerto (8082, 8083, ...).
 
 volumes:
   clubaereo-data:
